@@ -5,13 +5,10 @@ import { ChatList } from "@/components/chat-list"
 import { ChatMain } from "@/components/chat-main"
 import { Sidebar } from "@/components/sidebar"
 
+// Import Mongoose types (IChat, IMessage) and Types for ObjectId
 import { Types } from "mongoose" // Added Types for better type hinting
 import { IChat } from "@/models/Chat"
 import { IMessage } from "@/models/Message"
-
-// Import Mongoose types (IChat, IMessage) and Types for ObjectId
-// Remove import of CRUD functions and dbConnect as they are now used in API routes
-import { getMessagesByChatId } from "@/lib/actions" // Adjust the import path if necessary
 
 // Ensure you have types/index.ts with Chat and ChatMessage interfaces
 // If not using a separate types file, you can define them here, but let's use the imported ones
@@ -39,89 +36,93 @@ export default function HomePage() {
   const [currentMessages, setCurrentMessages] = useState<IMessage[]>([])
 
   // Load chats from the database on component mount using API route
-  // useEffect(() => {
-  //   const fetchChats = async () => {
-  //     setIsLoading(true)
-  //     try {
-  //       // Fetch chats from the API route
-  //       console.log("Fetching chats...")
-  //       const response = await fetch(`/api/chats?userId=${PLACEHOLDER_USER_ID}`)
+  useEffect(() => {
+    const fetchChats = async () => {
+      setIsLoading(true)
+      try {
+        // Fetch chats from the API route
+        console.log("Fetching chats...")
+        const response = await fetch(`/api/chats?userId=${PLACEHOLDER_USER_ID}`)
 
-  //       if (!response.ok) {
-  //         throw new Error(`Failed to fetch chats: ${response.status}`)
-  //       }
-  //       const chats: IChat[] = await response.json()
-  //       setAllChats(chats)
-  //       console.log("Fetching chats successfully")
+        if (!response.ok) {
+          throw new Error(`Failed to fetch chats: ${response.status}`)
+        }
+        const chats: IChat[] = await response.json()
+        setAllChats(chats)
+        console.log("Fetching chats successfully")
 
-  //       // Set the current chat to the most recently updated one
-  //       if (chats.length > 0) {
-  //         const sortedChats = [...chats].sort(
-  //           (a, b) =>
-  //             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  //         )
-  //         if (sortedChats[0]) {
-  //           setCurrentChatId(sortedChats[0]._id.toString()) // Use _id from Mongoose
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to fetch chats:", error)
-  //       setAllChats([]) // Clear chats on error
-  //       // Optionally set an error state to display a message to the user
-  //     } finally {
-  //       setIsLoading(false)
-  //     }
-  //   }
+        // Set the current chat to the most recently updated one
+        if (chats.length > 0) {
+          const sortedChats = [...chats].sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          )
+          if (sortedChats[0]) {
+            setCurrentChatId(sortedChats[0]._id.toString()) // Use _id from Mongoose
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch chats:", error)
+        setAllChats([]) // Clear chats on error
+        // Optionally set an error state to display a message to the user
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-  //   fetchChats()
-  // }, []) // Empty dependency array means this runs once on mount
+    fetchChats()
+  }, []) // Empty dependency array means this runs once on mount
 
   // Effect to load messages when the current chat changes using API route
-  // useEffect(() => {
-  //   const fetchMessages = async () => {
-  //     if (currentChatId) {
-  //       setIsLoading(true)
-  //       console.log("Fetching messages...")
-  //       try {
-  //         // Fetch messages from the API route
-  //         const response = await fetch(`/api/chats/${currentChatId}/messages`)
-  //         if (!response.ok) {
-  //           throw new Error(`Failed to fetch messages: ${response.status}`)
-  //         }
-  //         const messages: IMessage[] = await response.json()
-  //         setCurrentMessages(messages)
-  //       } catch (error) {
-  //         console.error(
-  //           "Failed to fetch messages for chat:",
-  //           currentChatId,
-  //           error
-  //         )
-  //         setCurrentMessages([]) // Clear messages on error
-  //         // Optionally set an error state
-  //       } finally {
-  //         setIsLoading(false)
-  //       }
-  //     } else {
-  //       setCurrentMessages([]) // Clear messages if no chat is selected
-  //     }
-  //   }
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (currentChatId) {
+        setIsLoading(true)
+        console.log("Fetching messages...")
+        try {
+          // Fetch messages from the API route
+          const response = await fetch(`/api/chats/${currentChatId}/messages`)
+          if (!response.ok) {
+            throw new Error(`Failed to fetch messages: ${response.status}`)
+          }
+          const messages: IMessage[] = await response.json()
+          setCurrentMessages(messages)
+        } catch (error) {
+          console.error(
+            "Failed to fetch messages for chat:",
+            currentChatId,
+            error
+          )
+          setCurrentMessages([]) // Clear messages on error
+          // Optionally set an error state
+        } finally {
+          setIsLoading(false)
+        }
+      } else {
+        setCurrentMessages([]) // Clear messages if no chat is selected
+      }
+    }
 
-  //   fetchMessages()
-  // }, [currentChatId]) // Rerun when currentChatId changes
+    fetchMessages()
+  }, [currentChatId]) // Rerun when currentChatId changes
 
-  const getCurrentTime = () => {
-    // This is now less relevant as timestamp comes from DB,
-    // but keeping for display consistency if the Message component uses it.
-    return new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
+  // Note: The ChatList component expects a 'Chat' type with an 'id' property.
+  // We need to map the Mongoose '_id' to 'id' when passing data to ChatList.
+  // The 'title' field will be included automatically via the spread operator if returned by the API.
+  const chatsForChatList = allChats.map((chat) => ({
+    ...chat, // This will now include 'title' if the backend returns it
+    id: chat._id.toString(), // Map _id to id
+    messages: [], // ChatList doesn't need full messages array
+  }))
 
   const handleSelectChat = (chatId: string) => {
     setCurrentChatId(chatId)
     // setIsChatListOpen(false); // Close sidebar on mobile after selection - handled by onMobileChatInteraction
     // Messages will be loaded by the useEffect hook
+  }
+
+  const handleMobileChatInteraction = () => {
+    setIsChatListOpen(false)
   }
 
   const handleNewChat = async () => {
@@ -131,7 +132,10 @@ export default function HomePage() {
       const response = await fetch("/api/chats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ participants: [PLACEHOLDER_USER_ID] }),
+        body: JSON.stringify({
+          participants: [PLACEHOLDER_USER_ID],
+          title: "New Chat",
+        }),
       })
 
       if (!response.ok) {
@@ -160,7 +164,9 @@ export default function HomePage() {
 
     if (!tempCurrentChatId) {
       // If no chat is selected, start a new one
+      console.log("going to open a new chat")
       tempCurrentChatId = await handleNewChat() // Await the new chat creation
+      console.log("opened a new chat")
       if (!tempCurrentChatId) {
         console.error("Cannot send message, failed to create a new chat.")
         return
@@ -210,13 +216,22 @@ export default function HomePage() {
       const data = await response.json()
       const botResponseContent = data.response
 
-      // After successful API call (user message saved, bot message saved), re-fetch messages
-      // to get the actual state from the database including correct _id, createdAt, etc.
-      const updatedMessages = await getMessagesByChatId(tempCurrentChatId)
-      setCurrentMessages(updatedMessages)
+      // After successful API call (user message saved, bot message saved),
+      // fetch the updated messages from the new API route
+      console.log("tempCurrentChatId: ", tempCurrentChatId)
+      const updatedMessages = await fetch(
+        `/api/chats/${tempCurrentChatId}/messages`
+      )
+      if (!updatedMessages.ok) {
+        throw new Error(
+          `Failed to fetch updated messages: ${updatedMessages.status}`
+        )
+      }
+      const updatedMessagesData = await updatedMessages.json()
+      setCurrentMessages(updatedMessagesData)
     } catch (error) {
       console.error("Error sending message:", error)
-      // Handle error: Maybe add an error message to the UI
+      // // Handle error: Maybe add an error message to the UI
       const errorMessageContent =
         "Sorry, an error occurred while sending your message. Please try again."
       const errorMessage: IMessage = {
@@ -241,22 +256,13 @@ export default function HomePage() {
     }
   }
 
-  // Find the active chat by ID for display purposes (mainly for title)
-  const activeChat = allChats.find(
-    (chat) => chat._id.toString() === currentChatId
-  )
-
-  const handleMobileChatInteraction = () => {
-    setIsChatListOpen(false)
+  const handleUpdateChatTitle = (chatId: string, newTitle: string) => {
+    setAllChats((prevChats) =>
+      prevChats.map((chat) =>
+        chat._id.toString() === chatId ? { ...chat, title: newTitle } : chat
+      )
+    )
   }
-
-  // Note: The ChatList component expects a 'Chat' type with an 'id' property.
-  // We need to map the Mongoose '_id' to 'id' when passing data to ChatList.
-  const chatsForChatList = allChats.map((chat) => ({
-    ...chat,
-    id: chat._id.toString(), // Map _id to id
-    messages: [], // ChatList doesn't need full messages array
-  }))
 
   return (
     <main className="flex h-screen overflow-hidden bg-gray-100">
@@ -270,11 +276,12 @@ export default function HomePage() {
       >
         <Sidebar />
         <ChatList
-          chats={chatsForChatList} // Pass mapped chats
+          chats={chatsForChatList}
           activeChatId={currentChatId}
           onSelectChat={handleSelectChat}
           onNewChat={handleNewChat}
           onMobileChatInteraction={handleMobileChatInteraction}
+          onUpdateChatTitle={handleUpdateChatTitle}
         />
       </div>
 

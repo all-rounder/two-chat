@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { chatId: string } }
 ) {
   try {
-    const { chatId } = params
+    const { chatId } = await params
 
     if (!chatId) {
       return NextResponse.json(

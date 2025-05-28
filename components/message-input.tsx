@@ -28,7 +28,7 @@ export function MessageInput({ onSendMessage, isLoading }: MessageInputProps) {
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Message slothGPT..."
+            placeholder="Message TwoChat..."
             className="pr-20 py-3 rounded-full border-gray-300"
             disabled={isLoading}
           />
@@ -56,7 +56,7 @@ export function MessageInput({ onSendMessage, isLoading }: MessageInputProps) {
           </div>
         </form>
         <p className="text-xs text-gray-500 text-center mt-2">
-          slothGPT can make mistakes. Check our Terms & Conditions.
+          TwoChat can make mistakes. Check our Terms & Conditions.
         </p>
       </div>
     </div>

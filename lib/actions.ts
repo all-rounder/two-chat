@@ -72,6 +72,24 @@ export const deleteChat = async (
   return Chat.findByIdAndDelete(chatId).exec()
 }
 
+/**
+ * Toggle the starred status of a chat.
+ * @param chatId - The ID of the chat.
+ * @returns The updated chat document or null if not found.
+ */
+export const toggleChatStar = async (
+  chatId: string | Types.ObjectId
+): Promise<IChat | null> => {
+  await dbConnect() // Ensure connection is established
+  const chat = await Chat.findById(chatId).exec()
+  if (!chat) {
+    return null
+  }
+  chat.starred = !chat.starred // Toggle the starred status
+  await chat.save()
+  return chat
+}
+
 // --- CRUD Functions for Message ---
 
 /**

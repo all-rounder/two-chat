@@ -6,7 +6,7 @@ export async function PATCH(
   { params }: { params: { chatId: string } }
 ) {
   try {
-    const { chatId } = params
+    const { chatId } = await params
     const { title } = await request.json()
 
     if (!title || typeof title !== "string") {

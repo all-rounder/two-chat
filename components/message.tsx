@@ -23,15 +23,19 @@ export function Message({ isUser, content, timestamp, avatar }: MessageProps) {
         </Avatar>
       ) : (
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-          <span className="text-white font-bold text-sm">S</span>
+          <span className="text-white font-bold text-sm">T</span>
         </div>
       )}
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <span className="font-medium">{isUser ? "You" : "slothGPT"}</span>
+          <span className="font-medium">{isUser ? "You" : "TwoChat"}</span>
           <span className="text-xs text-gray-500">{timestamp}</span>
         </div>
-        <div className="text-gray-700">
+        <div
+          className={`text-gray-700 inline-block ${
+            isUser ? "bg-gray-200 rounded-lg p-2" : ""
+          }`}
+        >
           {typeof content === "string" ? (
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           ) : (

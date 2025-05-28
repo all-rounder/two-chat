@@ -45,7 +45,7 @@ export function ChatMain({
     _id: msg._id?.toString(), // Map ObjectId to string
     content: msg.content,
     sender: msg.sender,
-    isUser: msg.sender === "user123", // Assuming 'user123' is the user sender ID
+    isUser: msg.sender !== "bot", // Assuming 'user123' is the user sender ID
     // Format the timestamp for display - use createdAt from Mongoose model
     timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
       hour: "2-digit",
